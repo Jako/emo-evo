@@ -34,6 +34,7 @@ if (!class_exists('Emo')) {
 	include EMO_BASE_PATH . 'emo.class.php';
 }
 
+// Get plugin settings
 $emoTplOnly = isset($emoTplOnly) ? $emoTplOnly : 'disable';
 $emoSelection = isset($emoSelection) ? $emoSelection : 'exclude';
 $emoSelectionRange = isset($emoSelectionRange) ? $emoSelectionRange : '';
@@ -46,7 +47,7 @@ if (is_numeric($noScriptMessage)) {
 }
 
 // Stop plugin on selection range and selection type
-$emoSelectionRange = explode(',', $emoSelectionRange);
+$emoSelectionRange = explode(',', str_replace(' ', '', $emoSelectionRange));
 $emoFound = in_array($modx->documentObject['id'], $emoSelectionRange);
 if (($emoFound && ($emoSelection != 'include')) || ($emoTplOnly == 'enable' && ($modx->documentObject['template'] == 0))) {
 	return;
@@ -55,7 +56,9 @@ if (($emoFound && ($emoSelection != 'include')) || ($emoTplOnly == 'enable' && (
 $e = &$modx->Event;
 switch ($e->name) {
 	case 'OnLoadWebDocument': {
-			$modx->regClientScript($pathToEmoJs);
+			if ($pathToEmoJs != '') {
+				$modx->regClientCSS($pathToEmoJs);
+			}
 			if ($pathToEmoCSS != '') {
 				$modx->regClientCSS($pathToEmoCss);
 			}
@@ -67,7 +70,7 @@ switch ($e->name) {
 				'show_debug' => $show_debug
 			);
 			$emo = new Emo($modx, $params);
-			$modx->documentOutput = $emo->generateScript($modx->documentOutput);
+			$modx->documentOutput = $emo->obfuscateEmail($modx->documentOutput);
 			$script = $emo->addressesjs . $emo->debug;
 			if ($emo->addrCount && strpos($modx->documentOutput, $script) === false) {
 				$modx->regClientScript($script);

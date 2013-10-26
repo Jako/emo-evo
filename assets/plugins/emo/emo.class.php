@@ -73,6 +73,13 @@ class Emo {
 	 */
 	private $tab;
 
+	/**
+	 * emo constructor
+	 *
+	 * @access public
+	 * @param modX $modx A reference to the modX instance.
+	 * @param array $params An array of configuration options.
+	 */
 	public function __construct(&$modx, $params) {
 		$this->modx = & $modx;
 		$this->noScriptMessage = $params['noScriptMessage'];
@@ -83,8 +90,15 @@ class Emo {
 		);
 	}
 
-	// Modified from ObfuscateEmail plugin for MODx by Aloysius Lim.
-	private function email_regex() {
+	/**
+	 * Create regular expression for searching email addresses.
+	 * Modified from ObfuscateEmail plugin for MODX Evolution by Aloysius Lim.
+	 *
+	 * @access private
+	 * @param void
+	 * @return string Regular expression.
+	 */
+	private function emailRegex() {
 		$atom = "[-!#$%'*+/=?^_`{|}~0-9A-Za-z]+";
 		$email_left = $atom . '(?:\\.' . $atom . ')*';
 		$email_right = $atom . '(?:\\.' . $atom . ')+';
@@ -92,8 +106,15 @@ class Emo {
 		return $email;
 	}
 
-	// Custom base 64 encoding
-	private function encode_base64($data) {
+	/**
+	 * Custom base 64 encoding
+	 * Original emo code by Florian Wobbe - www.eprofs.de
+	 *
+	 * @access public
+	 * @param string $data String to encode.
+	 * @return string Encoded data
+	 */
+	private function encodeBase64($data) {
 		$out = '';
 		for ($i = 0; $i < strlen($data);) {
 			$c1 = ord($data {$i++});
@@ -115,7 +136,14 @@ class Emo {
 		return $out;
 	}
 
-	// Encrypt the match or make a link when linktext missing
+	/**
+	 * Encrypt the match or generate a link when linktext is missing
+	 * Modified original emo code by Florian Wobbe - www.eprofs.de
+	 *
+	 * @access public
+	 * @param string $matches String to encode.
+	 * @return string Encoded data
+	 */
 	private function encodeLink($matches) {
 		// Use global variables
 
@@ -129,8 +157,8 @@ class Emo {
 			$this->addressesjs .= '      emo_addresses[' . $this->addrCount++ . '] = "' . $this->tab . '";' . "\n";
 		}
 
+		// Link without a linktext: insert email address as text part
 		if (sizeof($matches) < 3) {
-			// Link without a linktext: insert email address as text part
 			$matches[2] = $matches[1];
 		}
 
@@ -144,7 +172,7 @@ class Emo {
 		$key = array_search($trueLink, $this->recentLinks);
 		if ($key === false) {
 			// Encrypt the complete link
-			$crypted = '"' . $this->encode_base64($trueLink) . '"';
+			$crypted = '"' . $this->encodeBase64($trueLink) . '"';
 		} else {
 			// Use previously encrypted link
 			$crypted = 'emo_addresses[' . ($key + 1) . ']';
@@ -161,7 +189,10 @@ class Emo {
 
 		// Debugging
 		if ($this->config['show_debug']) {
-			$this->debug .= '  ' . $this->addrCount . ' ' . $matches[0] . "\n    " . $matches[1] . "\n    " . $matches[2] . "\n    " . $crypted . "\n";
+			$this->debug .= '  ' . $this->addrCount . ' ' . $matches[0] . "\n" .
+					'    ' . $matches[1] . "\n" .
+					'    ' . $matches[2] . "\n" .
+					'    ' . $crypted . "\n";
 		}
 
 		// Increase address counter
@@ -170,10 +201,21 @@ class Emo {
 		return $replaceLink;
 	}
 
-	function generateScript($content) {
+	/**
+	 * Replace the found email strings and generate the javascript
+	 * Modified original emo code by Florian Wobbe - www.eprofs.de
+	 *
+	 * @access public
+	 * @param string $content String to encode.
+	 * @return string Encoded data
+	 */
+	public function obfuscateEmail($content) {
 
 		// Script block header
-		$this->addressesjs = "\n" . '    <!-- This script block stores the encrypted //-->' . "\n" . '    <!-- email address(es) in an addresses array. //-->' . "\n" . '    <script type="text/javascript">' . "\n" . '    /* <![CDATA[ */' . "\n" . '      var emo_addresses = new Array();' . "\n";
+		$this->addressesjs = "\n" . '    <!-- This script block stores the encrypted //-->' . "\n" .
+				'    <!-- email address(es) in an addresses array. //-->' . "\n" .
+				'    <script type="text/javascript">' . "\n" . '    /* <![CDATA[ */' . "\n" .
+				'      var emo_addresses = new Array();' . "\n";
 
 		// Debugging
 		if ($this->config['show_debug']) {
@@ -191,13 +233,15 @@ class Emo {
 		foreach ($parts as $part) {
 			if (substr($part, 0, 5) != '<form') {
 				$part = preg_replace_callback('#<a[^>]*mailto:([^\'"]+)[\'"][^>]*>(.*)</a>#iUu', array($this, 'encodeLink'), $part);
-				$part = preg_replace_callback('<(' . $this->email_regex() . ')>', array($this, 'encodeLink'), $part);
+				$part = preg_replace_callback('<(' . $this->emailRegex() . ')>', array($this, 'encodeLink'), $part);
 			}
 			$output .= $part;
 		}
 
 		// Finish encrypted addresses block
-		$this->addressesjs .= "      addLoadEvent(emo_replace());" . "\n" . "    //-->" . "\n" . "    </script>" . "\n";
+		$this->addressesjs .= '      addLoadEvent(emo_replace());' . "\n" .
+				'    //-->' . "\n" .
+				'    </script>' . "\n";
 
 		// Maybe you want to use jQuery ...
 		// $this->addressesjs .= '     $(window).load(function(){'."\n".'        emo_replace();'."\n".'      });'."\n".'    /* ]]> */'."\n".'    </script>'."\n";
@@ -208,9 +252,9 @@ class Emo {
 			$mtime = $mtime[1] + $mtime[0];
 			$endtime = $mtime;
 			$totaltime = ($endtime - $starttime);
-			$this->debug .= '  Email crypting took ' . $totaltime . ' seconds' . "\n\n";
-			$this->debug .= '  ' . implode("\n  ", $this->recentLinks) . "\n";
-			$this->debug .= '-->';
+			$this->debug .= '  Email crypting took ' . $totaltime . ' seconds' . "\n\n" .
+					'  ' . implode("\n  ", $this->recentLinks) . "\n" .
+					'-->';
 		}
 		return $output;
 	}
