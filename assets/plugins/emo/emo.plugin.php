@@ -57,7 +57,7 @@ $e = &$modx->Event;
 switch ($e->name) {
 	case 'OnLoadWebDocument': {
 			if ($pathToEmoJs != '') {
-				$modx->regClientCSS($pathToEmoJs);
+				$modx->regClientScript($pathToEmoJs);
 			}
 			if ($pathToEmoCSS != '') {
 				$modx->regClientCSS($pathToEmoCss);
