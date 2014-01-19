@@ -38,7 +38,7 @@ if (!class_exists('Emo')) {
 $emoTplOnly = isset($emoTplOnly) ? $emoTplOnly : 'disable';
 $emoSelection = isset($emoSelection) ? $emoSelection : 'exclude';
 $emoSelectionRange = isset($emoSelectionRange) ? $emoSelectionRange : '';
-$pathToEmoJs = isset($pathToEmoJs) ? $pathToEmoJs : '/assets/plugins/emo/emo.js';
+$pathToEmoJs = isset($pathToEmoJs) ? $pathToEmoJs : EMO_PATH . 'emo.js';
 $pathToEmoCSS = isset($pathToEmoCSS) ? $pathToEmoCSS : '';
 $noScriptMessage = isset($noScriptMessage) ? $noScriptMessage : 'Turn on Javascript!';
 if (is_numeric($noScriptMessage)) {
