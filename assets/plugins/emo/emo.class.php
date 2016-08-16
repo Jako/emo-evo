@@ -162,8 +162,13 @@ class Emo {
 			$matches[2] = $matches[1];
 		}
 
-		// urlencode a possible subject
-		$matches[1] = preg_replace('!(.*\?(subject|body)=)([^\?]*)!ie', "'$1'.rawurldecode(rawurlencode('$3'))", $matches[1]);
+	        // rawurlencode/rawurldecode a possible subject
+	        $matches[1] = preg_replace_callback(
+	            '!(.*\?(subject|body)=)([^\?]*)!iu',
+	            function ($m) {
+	                return $m[1] . rawurldecode(rawurlencode($m[3]));
+	            }, $matches[1]
+	        );
 
 		// Create html of the true link
 		$trueLink = '<a class="emo_address" href="mailto:' . $matches[1] . '">' . $matches[2] . '</a>';
